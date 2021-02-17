@@ -10,6 +10,9 @@ import ReduxThunk from "redux-thunk";
 import Reducer from "./redux/reducer";
 import { BrowserRouter as Router } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const createStoreWithMiddleWare = applyMiddleware(
   promiseMiddleware,

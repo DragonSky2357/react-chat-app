@@ -16,7 +16,6 @@ function App(props) {
 
   useEffect(() => {
     firebase.auth().onAuthStateChanged((user) => {
-      console.log("user", user);
       if (user) {
         history.push("/");
         dispatch(setUser(user));
