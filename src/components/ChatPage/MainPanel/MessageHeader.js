@@ -12,7 +12,7 @@ import Accordion from "react-bootstrap/Accordion";
 import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
 
-function MessageHeader() {
+function MessageHeader({ handleSearchChange }) {
   return (
     <div
       style={{
@@ -39,6 +39,7 @@ function MessageHeader() {
                 </InputGroup.Text>
               </InputGroup.Prepend>
               <FormControl
+                onChange={handleSearchChange}
                 placeholder="Search Message"
                 aria-label="Search"
                 aria-describedby="basic-addon1"
