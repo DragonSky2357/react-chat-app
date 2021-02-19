@@ -61,17 +61,19 @@ export class MainPanel extends Component {
 
   renderMessages = (messages) =>
     messages.length > 0 &&
-    messages.map((message) => (
-      <Message
-        key={message.timestamp}
-        message={message}
-        user={this.props.user}
-      />
-    ));
+    messages.map(
+      (message) =>
+        this.props.user && (
+          <Message
+            key={message.timestamp}
+            message={message}
+            user={this.props.user}
+          />
+        )
+    );
 
   render() {
     const { messages, searchTerm, searchResults } = this.state;
-
     return (
       <div style={{ padding: "2rem 2rem 0 2rem" }}>
         <MessageHeader handleSearchChange={this.handleSearchChange} />
