@@ -1,7 +1,8 @@
 import React, { Component } from "react";
-import { FaRegSmileWink, FaPlus } from "react-icons/fa";
+import { FaRegSmileWink, FaPlus, FaRegComment } from "react-icons/fa";
 import Modal from "react-bootstrap/Modal";
-import Button from "react-bootstrap/Badge";
+import Button from "react-bootstrap/Button";
+import Badge from "react-bootstrap/Badge";
 import Form from "react-bootstrap/Form";
 import { connect } from "react-redux";
 import firebase from "../../../firebase";
@@ -16,9 +17,11 @@ export class ChatRooms extends Component {
     name: "",
     description: "",
     chatRoomsRef: firebase.database().ref("chatRooms"),
+    messagesRef: firebase.database().ref("messages"),
     chatRooms: [],
     firstLoad: true,
     activeChatRoomId: "",
+    notifications: [],
   };
 
   componentDidMount() {
@@ -47,9 +50,61 @@ export class ChatRooms extends Component {
       this.setState({ chatRooms: chatRoomsArray }, () =>
         this.setFirstChatRoom()
       );
+      this.addNotificationListener(DataSnapshot.key);
     });
   };
 
+  addNotificationListener = (chatRoomId) => {
+    this.state.messagesRef.child(chatRoomId).on("value", (DataSnapshot) => {
+      if (this.props.chatRoom) {
+        this.handleNotification(
+          chatRoomId,
+          this.props.chatRoom.id,
+          this.state.notifications,
+          DataSnapshot
+        );
+      }
+    });
+  };
+
+  handleNotification = (
+    chatRoomId,
+    currentChatRoomId,
+    notifications,
+    DataSnapshot
+  ) => {
+    console.log(
+      "chatRoomId",
+      chatRoomId,
+      "currentChatRoomId",
+      currentChatRoomId,
+      "notifications",
+      notifications,
+      "DataSnapshot",
+      DataSnapshot
+    );
+    let lastTotal = 0;
+    let index = notifications.findIndex(
+      (notification) => notification.id == chatRoomId
+    );
+    if (index === -1) {
+      notifications.push({
+        id: chatRoomId,
+        total: DataSnapshot.numChildren(),
+        lastKnowTotal: DataSnapshot.numChildren(),
+        count: 0,
+      });
+    } else {
+      if (chatRoomId !== currentChatRoomId) {
+        lastTotal = notifications[index].lastKnowTotal;
+
+        if (DataSnapshot.numChildren() - lastTotal > 0)
+          notifications[index].count = DataSnapshot.numChildren() - lastTotal;
+      }
+      notifications[index].total = DataSnapshot.numChildren();
+    }
+    this.setState({ notifications });
+  };
   handleClose = () => this.setState({ show: false });
   handleShow = () => this.setState({ show: true });
 
@@ -97,6 +152,16 @@ export class ChatRooms extends Component {
     this.setState({ activeChatRoomId: room.id });
   };
 
+  getNotificationCount = (room) => {
+    let count = 0;
+
+    this.state.notifications.forEach((notification) => {
+      if (notification.id === room.id) {
+        count = notification.count;
+      }
+    });
+    if (count > 0) return count;
+  };
   renderChatRooms = (chatRooms) =>
     chatRooms.length > 0 &&
     chatRooms.map((room) => (
@@ -109,6 +174,9 @@ export class ChatRooms extends Component {
         onClick={() => this.changeChatRoom(room)}
       >
         #{room.name}
+        <Badge style={{ float: "right", marginTop: "4px" }} variant="danger">
+          {this.getNotificationCount(room)}
+        </Badge>
       </li>
     ));
 
@@ -187,6 +255,7 @@ export class ChatRooms extends Component {
 const mapStateToProps = (state) => {
   return {
     user: state.user.currentUser,
+    chatRoom: state.chatRoom.currentChatRoom,
   };
 };
 
